@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Workflow Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #f7f5f0;
+  --ink:     #18160f;
+  --muted:   #7a7568;
+  --border:  #e2ddd5;
+  --surface: #ffffff;
+  --s2:      #f0ece4;
+  --s3:      #e8e3da;
+
+  --eng:     #166534; --eng-bg:    #dcfce7; --eng-mid:   #16a34a;
+  --fund:    #92400e; --fund-bg:   #fef3c7; --fund-mid:  #d97706;
+  --out:     #1e3a8a; --out-bg:    #dbeafe; --out-mid:   #2563eb;
+  --social:  #701a75; --social-bg: #fae8ff; --social-mid:#a21caf;
+
+  --red:   #dc2626; --red-bg:  #fef2f2; --red-border: #fecaca;
+  --amber: #d97706; --amber-bg:#fffbeb; --amber-border:#fde68a;
+  --green: #16a34a; --green-bg:#f0fdf4;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ─── LOGIN SCREEN ─────────────────────────────────────────────── */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  padding: 20px;
+}
+
+.login-card {
+  background: var(--bg);
+  border-radius: 16px;
+  padding: 48px 40px 40px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.login-logo {
+  width: 48px; height: 48px;
+  background: var(--ink);
+  border-radius: 12px;
+  margin: 0 auto 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.login-sub {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.login-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+.login-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  margin-bottom: 14px;
+  transition: border-color 0.15s;
+}
+.login-input:focus { border-color: var(--ink); }
+
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.role-btn {
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.role-btn .role-icon { font-size: 20px; }
+.role-btn:hover { border-color: var(--ink); }
+.role-btn.selected { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.role-btn-ed { border-style: solid; border-color: var(--ink) !important; background: var(--s2) !important; }
+
+.login-btn {
+  width: 100%;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.login-btn:hover { opacity: 0.8; }
+
+.login-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 14px;
+  line-height: 1.5;
+}
+
+/* ─── APP SHELL ─────────────────────────────────────────────────── */
+#app { display: none; }
+
+.topbar {
+  background: var(--ink);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 56px;
+  position: sticky; top: 0; z-index: 100;
+}
+
+.topbar-left {
+  display: flex; align-items: center; gap: 14px;
+}
+.topbar-logo {
+  font-size: 20px;
+  background: rgba(255,255,255,0.1);
+  width: 32px; height: 32px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+}
+.topbar-name {
+  font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
+}
+.topbar-week {
+  font-size: 11px; opacity: 0.4;
+  font-family: 'Lora', serif; font-style: italic;
+  margin-left: 4px;
+}
+
+.topbar-right {
+  display: flex; align-items: center; gap: 12px;
+}
+.user-chip {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 5px 12px 5px 8px;
+  font-size: 12px; font-weight: 600;
+}
+.user-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+  color: var(--ink);
+}
+.logout-btn {
+  background: none; border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.6); border-radius: 6px;
+  padding: 5px 10px; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+.logout-btn:hover { border-color: rgba(255,255,255,0.5); color: white; }
+
+/* Stat strip */
+.stat-strip {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  padding: 0 32px;
+}
+.stat-item {
+  padding: 14px 20px 12px;
+  border-right: 1px solid var(--border);
+  display: flex; align-items: baseline; gap: 8px;
+}
+.stat-num {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
+}
+.stat-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.stat-item.red .stat-num { color: var(--red); }
+.stat-item.amber .stat-num { color: var(--amber); }
+.overdue-alert {
+  flex: 1;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px;
+  font-size: 12px; font-weight: 600; color: var(--red);
+}
+.overdue-alert.hidden { display: none; }
+
+/* ─── FILTER TABS ───────────────────────────────────────────────── */
+.tab-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex; gap: 0;
+  overflow-x: auto;
+}
+.tab {
+  padding: 12px 16px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none; background: none; cursor: pointer;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+.tab .dot { width: 7px; height: 7px; border-radius: 50%; }
+.tab .count {
+  background: var(--s2); color: var(--muted);
+  font-size: 10px; border-radius: 8px; padding: 1px 6px;
+}
+.tab.active .count { background: var(--ink); color: var(--bg); }
+
+/* ─── CONTENT ───────────────────────────────────────────────────── */
+.content { padding: 28px 32px 60px; }
+
+/* ─── ADD TASK ──────────────────────────────────────────────────── */
+.add-zone {
+  background: var(--surface);
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 28px;
+  display: none; /* shown only for own team / admin */
+}
+.add-zone.visible { display: block; }
+.add-zone-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 7px;
+}
+.add-zone-title::before {
+  content: '+'; display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 4px;
+  background: var(--s2); color: var(--ink); font-size: 14px; font-weight: 800;
+}
+.add-row {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+}
+.af { display: flex; flex-direction: column; gap: 4px; }
+.af label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.af.grow { flex: 1; min-width: 200px; }
+
+.a-input, .a-select {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 11px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 13px; color: var(--ink);
+  outline: none; height: 36px;
+  transition: border-color 0.15s;
+}
+.a-input:focus, .a-select:focus { border-color: var(--ink); }
+.a-input::placeholder { color: var(--muted); }
+.a-select { appearance: none; padding-right: 26px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a7568' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center; }
+
+.a-submit {
+  background: var(--ink); color: var(--bg);
+  border: none; border-radius: 7px;
+  padding: 0 18px; height: 36px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
+}
+.a-submit:hover { opacity: 0.75; }
+
+/* ─── SECTION GROUP ─────────────────────────────────────────────── */
+.section-group { margin-bottom: 32px; }
+
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 14px 5px 10px;
+  border-radius: 20px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+}
+.section-progress {
+  font-size: 11px; color: var(--muted); font-weight: 600;
+}
+.section-progress b { color: var(--ink); }
+
+/* ─── TASK CARD ─────────────────────────────────────────────────── */
+.tasks-wrap { display: flex; flex-direction: column; gap: 5px; }
+
+.tcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 13px 15px 13px 18px;
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 12px;
+  align-items: start;
+  position: relative;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.tcard::before {
+  content: '';
+  position: absolute; left: 0; top: 8px; bottom: 8px;
+  width: 3px; border-radius: 0 2px 2px 0;
+}
+.tcard[data-team="eng"]::before    { background: var(--eng-mid); }
+.tcard[data-team="fund"]::before   { background: var(--fund-mid); }
+.tcard[data-team="out"]::before    { background: var(--out-mid); }
+.tcard[data-team="social"]::before { background: var(--social-mid); }
+
+.tcard:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07); border-color: #ccc8c0; }
+.tcard.overdue  { background: var(--red-bg);   border-color: var(--red-border); }
+.tcard.due-soon { background: var(--amber-bg); border-color: var(--amber-border); }
+.tcard.is-done  { opacity: 0.45; }
+.tcard.is-done .t-text { text-decoration: line-through; color: var(--muted); }
+
+/* Checkbox */
+.tcb {
+  width: 18px; height: 18px; border-radius: 4px;
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.tcard.is-done .tcb { background: var(--muted); border-color: var(--muted); }
+.tcb svg { display: none; }
+.tcard.is-done .tcb svg { display: block; }
+.can-toggle { cursor: pointer; }
+.can-toggle:hover .tcb { border-color: var(--muted); }
+
+/* Body */
+.t-body {}
+.t-text { font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--ink); margin-bottom: 6px; }
+.t-chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 10px; white-space: nowrap;
+}
+.chip-owner  { background: var(--s2); color: var(--ink); }
+.chip-cad    { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.chip-overdue { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.chip-soon   { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.chip-ok     { background: var(--green-bg); color: var(--green); }
+.chip-done   { background: var(--s2); color: var(--muted); }
+
+/* Result link */
+.t-result {
+  margin-top: 7px;
+}
+.result-link-display {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; color: var(--out);
+  background: var(--out-bg); border: 1px solid #bfdbfe;
+  padding: 3px 9px; border-radius: 10px;
+  text-decoration: none; transition: opacity 0.15s;
+}
+.result-link-display:hover { opacity: 0.75; }
+.result-link-display .link-icon { font-size: 13px; }
+
+/* Right side controls */
+.t-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+  min-width: 130px;
+}
+.due-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.due-inp {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 11px; font-weight: 600;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 8px; color: var(--ink);
+  outline: none; width: 126px; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.due-inp:hover { border-color: var(--muted); }
+.due-inp:focus { border-color: var(--ink); }
+.due-inp.overdue { color: var(--red); border-color: var(--red-border); background: var(--red-bg); }
+.due-inp.soon    { color: var(--amber); border-color: var(--amber-border); background: var(--amber-bg); }
+
+/* result input row (shown when editing) */
+.result-input-row {
+  display: none; /* shown if can-edit */
+  align-items: center; gap: 6px; margin-top: 4px;
+}
+.result-input-row.can-edit { display: flex; }
+.r-inp {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 8px; font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 11px; color: var(--ink); outline: none;
+  width: 126px; transition: border-color 0.15s;
+}
+.r-inp:focus { border-color: var(--ink); }
+.r-inp::placeholder { color: var(--muted); }
+.r-save {
+  background: var(--ink); color: var(--bg);
+  border: none; border-radius: 5px; padding: 4px 9px;
+  font-family: 'Bricolage Grotesque', sans-serif; font-size: 10px;
+  font-weight: 700; letter-spacing: 0.06em; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.r-save:hover { opacity: 0.7; }
+
+/* delete btn */
+.del-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--border); font-size: 16px; padding: 2px 4px;
+  border-radius: 4px; transition: color 0.15s; opacity: 0;
+  font-family: sans-serif; line-height: 1;
+}
+.tcard:hover .del-btn.can-del { opacity: 1; }
+.del-btn.can-del:hover { color: var(--red); }
+
+/* Empty */
+.empty { text-align: center; padding: 36px; font-family: 'Lora', serif;
+  font-style: italic; color: var(--muted); font-size: 14px; }
+
+/* Readonly notice */
+.readonly-notice {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  margin-bottom: 20px;
+}
+
+/* Loading */
+.loading { text-align: center; padding: 60px 20px; color: var(--muted);
+  font-family: 'Lora', serif; font-style: italic; }
+
+@media (max-width: 640px) {
+  .topbar, .tab-bar, .content { padding-left: 16px; padding-right: 16px; }
+  .stat-strip { padding: 0 16px; }
+  .t-right { display: none; }
+  .tcard { grid-template-columns: 22px 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🌱</div>
+    <div class="login-title">Team Workflow</div>
+    <div class="login-sub">Sign in to see & manage your team's tasks</div>
+
+    <label class="login-label">Your name</label>
+    <input class="login-input" id="login-name" type="text" placeholder="e.g. Sarah Chen" autocomplete="off">
+
+    <label class="login-label" style="margin-bottom:10px">Your role</label>
+    <div class="role-grid" id="role-grid">
+      <button class="role-btn" data-team="eng">
+        <span class="role-icon">⚙️</span>Engineering Lead
+      </button>
+      <button class="role-btn" data-team="fund">
+        <span class="role-icon">💛</span>Fundraising Lead
+      </button>
+      <button class="role-btn" data-team="out">
+        <span class="role-icon">🤝</span>Outreach Lead
+      </button>
+      <button class="role-btn" data-team="social">
+        <span class="role-icon">📢</span>Social Media Lead
+      </button>
+      <button class="role-btn role-btn-ed" data-team="ed" style="grid-column:1/-1">
+        <span class="role-icon">🏛️</span>Executive Director <span style="font-size:10px;opacity:0.6;font-weight:400">· full access</span>
+      </button>
+    </div>
+
+    <button class="login-btn" id="login-btn">Enter Dashboard →</button>
+    <div class="login-note">No passwords needed — pick your team to edit your tasks.<br>All team members share the same live data.</div>
+  </div>
+</div>
+
+<!-- ═══ APP ══════════════════════════════════════════════════════════════ -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">🌱</div>
+      <div class="topbar-name">Team Workflow</div>
+      <span class="topbar-week" id="topbar-week"></span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="user-avatar"></div>
+        <span id="user-display"></span>
+      </div>
+      <button class="logout-btn" id="logout-btn">Switch</button>
+    </div>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-item red">
+      <span class="stat-num" id="s-overdue">0</span>
+      <span class="stat-label">Overdue</span>
+    </div>
+    <div class="stat-item amber">
+      <span class="stat-num" id="s-soon">0</span>
+      <span class="stat-label">Due Soon</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="s-open">0</span>
+      <span class="stat-label">Open</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="s-done">0</span>
+      <span class="stat-label">Done ✓</span>
+    </div>
+    <div class="overdue-alert" id="overdue-alert">
+      🚨 <span id="overdue-msg"></span>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" data-filter="all">All Teams</button>
+    <button class="tab" data-filter="overdue">⚠ Overdue</button>
+    <button class="tab" data-filter="eng">
+      <span class="dot" style="background:var(--eng-mid)"></span>Engineering
+      <span class="count" id="cnt-eng">0</span>
+    </button>
+    <button class="tab" data-filter="fund">
+      <span class="dot" style="background:var(--fund-mid)"></span>Fundraising
+      <span class="count" id="cnt-fund">0</span>
+    </button>
+    <button class="tab" data-filter="out">
+      <span class="dot" style="background:var(--out-mid)"></span>Outreach
+      <span class="count" id="cnt-out">0</span>
+    </button>
+    <button class="tab" data-filter="social">
+      <span class="dot" style="background:var(--social-mid)"></span>Social Media
+      <span class="count" id="cnt-social">0</span>
+    </button>
+  </div>
+
+  <div class="content">
+    <div id="add-zone" class="add-zone">
+      <div class="add-zone-title">Add task to <span id="add-zone-team-label">your team</span></div>
+      <div class="add-row">
+        <div class="af grow">
+          <label>Task description</label>
+          <input class="a-input" id="a-text" type="text" placeholder="What needs to be done?">
+        </div>
+        <div class="af">
+          <label>Owner</label>
+          <input class="a-input" id="a-owner" type="text" placeholder="Name / role" style="width:130px">
+        </div>
+        <div class="af">
+          <label>Cadence</label>
+          <select class="a-select" id="a-cadence" style="width:120px">
+            <option value="">—</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="bi-weekly">Bi-weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="per event">Per Event</option>
+            <option value="one-time">One-time</option>
+          </select>
+        </div>
+        <div class="af">
+          <label>Due Date</label>
+          <input class="a-input" id="a-due" type="date" style="width:138px">
+        </div>
+        <button class="a-submit" id="a-submit">+ Add</button>
+      </div>
+    </div>
+
+    <div id="readonly-notice" class="readonly-notice" style="display:none">
+      👁 You can view all tasks. Only leads can edit their own team's tasks.
+    </div>
+
+    <div id="task-lists"><div class="loading">Loading tasks…</div></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
+const TEAMS = {
+  eng:    { label: 'Engineering',       icon: '⚙️', color: '#166534', bg: '#dcfce7', mid: '#16a34a' },
+  fund:   { label: 'Fundraising',       icon: '💛', color: '#92400e', bg: '#fef3c7', mid: '#d97706' },
+  out:    { label: 'Outreach',          icon: '🤝', color: '#1e3a8a', bg: '#dbeafe', mid: '#2563eb' },
+  social: { label: 'Social Media',      icon: '📢', color: '#701a75', bg: '#fae8ff', mid: '#a21caf' },
+  ed:     { label: 'Executive Director',icon: '🏛️', color: '#18160f', bg: '#f0ece4', mid: '#18160f' },
+};
+
+const AVATAR_COLORS = {
+  eng: '#dcfce7', fund: '#fef3c7', out: '#dbeafe', social: '#fae8ff', ed: '#e8e3da'
+};
+
+const STORAGE_KEY = 'np_shared_tasks_v3';
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let currentUser = null; // { name, team }
+let tasks = [];
+let currentFilter = 'all';
+
+const today = new Date();
+today.setHours(0,0,0,0);
+
+function offset(n) {
+  const d = new Date(today); d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+
+const SEED = [
+  { id:'e1', team:'eng',    text:'Sprint planning & assign GitHub issues',       owner:'Tech Lead',       cadence:'weekly',    due: offset(-3), done:false, resultUrl:'' },
+  { id:'e2', team:'eng',    text:'Post async standup update in Slack',            owner:'All Devs',        cadence:'weekly',    due: offset(-1), done:false, resultUrl:'' },
+  { id:'e3', team:'eng',    text:'Code review open PRs before merging',           owner:'Reviewers',       cadence:'weekly',    due: offset(2),  done:false, resultUrl:'' },
+  { id:'e4', team:'eng',    text:'QA testing on staging environment',             owner:'QA Volunteer',    cadence:'per event', due: offset(5),  done:false, resultUrl:'' },
+  { id:'e5', team:'eng',    text:'Deploy to production & monitor 24h',            owner:'DevOps',          cadence:'per event', due: offset(7),  done:false, resultUrl:'' },
+  { id:'e6', team:'eng',    text:'Update release notes & documentation',          owner:'Tech Lead',       cadence:'per event', due: offset(9),  done:true,  resultUrl:'https://docs.google.com/example' },
+  { id:'f1', team:'fund',   text:'Research new grant opportunities',              owner:'Grant Writer',    cadence:'monthly',   due: offset(-5), done:false, resultUrl:'' },
+  { id:'f2', team:'fund',   text:'Update donor CRM with new contacts',            owner:'Dev Relations',   cadence:'weekly',    due: offset(1),  done:false, resultUrl:'' },
+  { id:'f3', team:'fund',   text:'Send thank-you notes to recent donors',         owner:'Outreach Lead',   cadence:'weekly',    due: offset(3),  done:false, resultUrl:'' },
+  { id:'f4', team:'fund',   text:'Draft Q2 grant proposal',                       owner:'Grant Writer',    cadence:'one-time',  due: offset(14), done:false, resultUrl:'' },
+  { id:'f5', team:'fund',   text:'Review monthly fundraising dashboard',          owner:'Director',        cadence:'monthly',   due: offset(10), done:true,  resultUrl:'https://drive.google.com/example' },
+  { id:'o1', team:'out',    text:'Email 5 new potential partners / schools',      owner:'Outreach Team',   cadence:'weekly',    due: offset(-2), done:false, resultUrl:'' },
+  { id:'o2', team:'out',    text:'Follow up on pending partnership conversations',owner:'Outreach Lead',   cadence:'weekly',    due: offset(1),  done:false, resultUrl:'' },
+  { id:'o3', team:'out',    text:'Maintain partnership tracker (status + last contact)', owner:'All',    cadence:'ongoing',   due: offset(4),  done:false, resultUrl:'' },
+  { id:'o4', team:'out',    text:'Identify upcoming events to table at',          owner:'Lead',            cadence:'monthly',   due: offset(6),  done:false, resultUrl:'' },
+  { id:'s1', team:'social', text:'Plan weekly content calendar',                  owner:'Content Lead',    cadence:'weekly',    due: offset(-1), done:false, resultUrl:'' },
+  { id:'s2', team:'social', text:'Create graphics / carousels for the week',      owner:'Designer',        cadence:'weekly',    due: offset(0),  done:false, resultUrl:'' },
+  { id:'s3', team:'social', text:'Write captions & hashtags',                     owner:'Copywriter',      cadence:'weekly',    due: offset(1),  done:false, resultUrl:'' },
+  { id:'s4', team:'social', text:'Schedule posts via Buffer / Later',             owner:'Content Lead',    cadence:'weekly',    due: offset(2),  done:false, resultUrl:'' },
+  { id:'s5', team:'social', text:'Respond to comments & DMs within 24h',          owner:'Community',       cadence:'daily',     due: offset(0),  done:false, resultUrl:'' },
+  { id:'s6', team:'social', text:'Pull monthly analytics & share recap with team',owner:'Lead',            cadence:'monthly',   due: offset(12), done:true,  resultUrl:'https://docs.google.com/spreadsheets/example' },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STORAGE (shared via window.storage)
+// ═══════════════════════════════════════════════════════════════
+async function loadTasks() {
+  try {
+    const res = await window.storage.get(STORAGE_KEY, true);
+    tasks = JSON.parse(res.value);
+  } catch {
+    tasks = SEED;
+    await saveTasks();
+  }
+}
+
+async function saveTasks() {
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(tasks), true);
+  } catch (e) {
+    console.error('Save failed', e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DUE STATUS
+// ═══════════════════════════════════════════════════════════════
+function dueStatus(task) {
+  if (task.done) return 'done';
+  if (!task.due) return 'none';
+  const d = new Date(task.due + 'T00:00:00');
+  const diff = Math.round((d - today) / 86400000);
+  if (diff < 0) return 'overdue';
+  if (diff <= 3) return 'soon';
+  return 'ok';
+}
+
+function dueText(task) {
+  if (!task.due) return '';
+  if (task.done) return '✓ Done';
+  const d = new Date(task.due + 'T00:00:00');
+  const diff = Math.round((d - today) / 86400000);
+  if (diff < 0)  return `${Math.abs(diff)}d overdue`;
+  if (diff === 0) return 'Due today';
+  if (diff === 1) return 'Due tomorrow';
+  return `Due in ${diff}d`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════════════════════
+let selectedTeam = null;
+
+document.querySelectorAll('.role-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedTeam = btn.dataset.team;
+  });
+});
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) { document.getElementById('login-name').focus(); return; }
+  if (!selectedTeam) { alert('Please select your team role.'); return; }
+  currentUser = { name, team: selectedTeam };
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initApp();
+});
+
+document.getElementById('login-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// APP INIT
+// ═══════════════════════════════════════════════════════════════
+async function initApp() {
+  // Header
+  const now = new Date();
+  const wk = Math.ceil((now - new Date(now.getFullYear(),0,1)) / 604800000);
+  document.getElementById('topbar-week').textContent =
+    `Week ${wk} · ${now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+
+  const initials = currentUser.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-avatar').style.background = AVATAR_COLORS[currentUser.team];
+  document.getElementById('user-display').textContent =
+    `${currentUser.name} · ${TEAMS[currentUser.team].icon} ${TEAMS[currentUser.team].label}`;
+
+  // Add zone
+  const addZone = document.getElementById('add-zone');
+  addZone.classList.add('visible');
+
+  const isED = currentUser.team === 'ed';
+
+  if (isED) {
+    // Show team selector in add zone for ED
+    document.getElementById('add-zone-team-label').innerHTML =
+      `<select class="a-select" id="a-team-select" style="width:160px">
+        <option value="eng">⚙️ Engineering</option>
+        <option value="fund">💛 Fundraising</option>
+        <option value="out">🤝 Outreach</option>
+        <option value="social">📢 Social Media</option>
+      </select>`;
+  } else {
+    document.getElementById('add-zone-team-label').textContent =
+      `${TEAMS[currentUser.team].icon} ${TEAMS[currentUser.team].label}`;
+  }
+
+  // Readonly notice (only for non-ED non-own-team viewing)
+  document.getElementById('readonly-notice').style.display = isED ? 'none' : 'inline-flex';
+
+  // Load & render
+  await loadTasks();
+  renderAll();
+
+  // Poll for updates every 15s
+  setInterval(async () => {
+    await loadTasks();
+    renderAll();
+  }, 15000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILTER TABS
+// ═══════════════════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    currentFilter = tab.dataset.filter;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderAll();
+  });
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  currentUser = null; selectedTeam = null; tasks = [];
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('login-name').value = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ADD TASK
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('a-submit').addEventListener('click', addTask);
+document.getElementById('a-text').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTask();
+});
+
+async function addTask() {
+  const text = document.getElementById('a-text').value.trim();
+  if (!text) { document.getElementById('a-text').focus(); return; }
+
+  const isED = currentUser.team === 'ed';
+  const teamSelect = document.getElementById('a-team-select');
+  const targetTeam = isED && teamSelect ? teamSelect.value : currentUser.team;
+
+  const t = {
+    id: 't_' + Date.now(),
+    team: targetTeam,
+    text,
+    owner: document.getElementById('a-owner').value.trim() || currentUser.name,
+    cadence: document.getElementById('a-cadence').value,
+    due: document.getElementById('a-due').value,
+    done: false,
+    resultUrl: '',
+  };
+  tasks.push(t);
+  await saveTasks();
+  document.getElementById('a-text').value = '';
+  document.getElementById('a-owner').value = '';
+  document.getElementById('a-due').value = '';
+  // Switch to that team's tab
+  currentFilter = targetTeam;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.filter === currentFilter));
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+function renderAll() {
+  updateStats();
+
+  const container = document.getElementById('task-lists');
+  container.innerHTML = '';
+
+  let visible = currentFilter === 'all'     ? tasks :
+                currentFilter === 'overdue' ? tasks.filter(t => dueStatus(t) === 'overdue') :
+                tasks.filter(t => t.team === currentFilter);
+
+  const groups = {};
+  if (currentFilter === 'all' || currentFilter === 'overdue') {
+    Object.keys(TEAMS).forEach(k => groups[k] = []);
+    visible.forEach(t => groups[t.team].push(t));
+  } else {
+    groups[currentFilter] = visible;
+  }
+
+  let any = false;
+  Object.entries(groups).forEach(([teamId, list]) => {
+    if (!list.length) return;
+    any = true;
+    container.appendChild(renderSection(teamId, list));
+  });
+
+  if (!any) {
+    const e = document.createElement('div');
+    e.className = 'empty';
+    e.textContent = currentFilter === 'overdue'
+      ? '🎉 No overdue tasks — everyone is on track!'
+      : 'No tasks yet. Add one above!';
+    container.appendChild(e);
+  }
+}
+
+function renderSection(teamId, list) {
+  const team = TEAMS[teamId];
+  const wrap = document.createElement('div');
+  wrap.className = 'section-group';
+
+  // Header
+  const head = document.createElement('div');
+  head.className = 'section-head';
+
+  const pill = document.createElement('div');
+  pill.className = 'section-pill';
+  pill.style.background = team.bg;
+  pill.style.color = team.color;
+  pill.innerHTML = `${team.icon} ${team.label}`;
+
+  const prog = document.createElement('div');
+  prog.className = 'section-progress';
+  const done = list.filter(t=>t.done).length;
+  prog.innerHTML = `<b>${done}</b> / ${list.length} done`;
+
+  head.appendChild(pill);
+  head.appendChild(prog);
+  wrap.appendChild(head);
+
+  // Sort: overdue → due-soon → ok → done
+  const order = { overdue: 0, soon: 1, ok: 2, none: 3, done: 4 };
+  const sorted = [...list].sort((a,b) => {
+    const os = order[dueStatus(a)] - order[dueStatus(b)];
+    if (os !== 0) return os;
+    if (!a.due && !b.due) return 0;
+    if (!a.due) return 1; if (!b.due) return -1;
+    return new Date(a.due) - new Date(b.due);
+  });
+
+  const tasksWrap = document.createElement('div');
+  tasksWrap.className = 'tasks-wrap';
+  sorted.forEach(t => tasksWrap.appendChild(renderTask(t)));
+  wrap.appendChild(tasksWrap);
+  return wrap;
+}
+
+function renderTask(task) {
+  const canEdit = currentUser && (currentUser.team === 'ed' || currentUser.team === task.team);
+  const status  = dueStatus(task);
+
+  const card = document.createElement('div');
+  card.className = 'tcard' +
+    (task.done    ? ' is-done'   : '') +
+    (status === 'overdue' ? ' overdue'   : '') +
+    (status === 'soon'    ? ' due-soon'  : '') +
+    (canEdit ? ' can-toggle' : '');
+  card.dataset.team = task.team;
+
+  // ── Checkbox
+  const cb = document.createElement('div');
+  cb.className = 'tcb';
+  cb.innerHTML = `<svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+    <path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+
+  // ── Body
+  const body = document.createElement('div');
+  body.className = 't-body';
+
+  const txt = document.createElement('div');
+  txt.className = 't-text';
+  txt.textContent = task.text;
+  body.appendChild(txt);
+
+  const chips = document.createElement('div');
+  chips.className = 't-chips';
+  if (task.owner) {
+    const oc = document.createElement('span');
+    oc.className = 'chip chip-owner';
+    oc.textContent = '👤 ' + task.owner;
+    chips.appendChild(oc);
+  }
+  if (task.cadence) {
+    const cc = document.createElement('span');
+    cc.className = 'chip chip-cad';
+    cc.textContent = task.cadence;
+    chips.appendChild(cc);
+  }
+  if (task.due) {
+    const sc = {overdue:'chip-overdue',soon:'chip-soon',ok:'chip-ok',done:'chip-done'};
+    const dc = document.createElement('span');
+    dc.className = 'chip ' + (sc[status] || '');
+    dc.textContent = dueText(task);
+    chips.appendChild(dc);
+  }
+  body.appendChild(chips);
+
+  // Result link display
+  if (task.resultUrl) {
+    const res = document.createElement('div');
+    res.className = 't-result';
+    const a = document.createElement('a');
+    a.className = 'result-link-display';
+    a.href = task.resultUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    let host = '';
+    try { host = new URL(task.resultUrl).hostname.replace('www.',''); } catch { host = 'link'; }
+    a.innerHTML = `<span class="link-icon">🔗</span> ${host}`;
+    res.appendChild(a);
+    body.appendChild(res);
+  }
+
+  // ── Right column
+  const right = document.createElement('div');
+  right.className = 't-right';
+
+  // Due date
+  const dueL = document.createElement('div'); dueL.className = 'due-lbl'; dueL.textContent = 'Due date';
+  const dueInp = document.createElement('input');
+  dueInp.className = 'due-inp' + (status==='overdue'?' overdue':status==='soon'?' soon':'');
+  dueInp.type = 'date';
+  dueInp.value = task.due || '';
+  dueInp.disabled = !canEdit;
+  dueInp.addEventListener('click', e => e.stopPropagation());
+  dueInp.addEventListener('change', async e => {
+    task.due = e.target.value;
+    await saveTasks(); renderAll();
+  });
+  right.appendChild(dueL);
+  right.appendChild(dueInp);
+
+  // Result URL input (only for can-edit)
+  const rRow = document.createElement('div');
+  rRow.className = 'result-input-row' + (canEdit ? ' can-edit' : '');
+
+  const rLbl = document.createElement('div'); rLbl.className = 'due-lbl'; rLbl.textContent = 'Result link';
+  right.appendChild(rLbl);
+
+  const rInp = document.createElement('input');
+  rInp.className = 'r-inp';
+  rInp.type = 'url';
+  rInp.placeholder = 'https://…';
+  rInp.value = task.resultUrl || '';
+  rInp.addEventListener('click', e => e.stopPropagation());
+
+  const rSave = document.createElement('button');
+  rSave.className = 'r-save';
+  rSave.textContent = 'Save';
+  rSave.addEventListener('click', async e => {
+    e.stopPropagation();
+    task.resultUrl = rInp.value.trim();
+    await saveTasks(); renderAll();
+  });
+  rInp.addEventListener('keydown', e => { if(e.key==='Enter') rSave.click(); });
+
+  rRow.appendChild(rInp);
+  rRow.appendChild(rSave);
+  right.appendChild(rRow);
+
+  // Delete
+  const del = document.createElement('button');
+  del.className = 'del-btn' + (canEdit ? ' can-del' : '');
+  del.title = 'Remove task';
+  del.textContent = '×';
+  del.addEventListener('click', async e => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    tasks = tasks.filter(t => t.id !== task.id);
+    await saveTasks(); renderAll();
+  });
+  right.appendChild(del);
+
+  // ── Toggle
+  if (canEdit) {
+    card.addEventListener('click', async () => {
+      task.done = !task.done;
+      await saveTasks(); renderAll();
+    });
+  }
+
+  card.appendChild(cb);
+  card.appendChild(body);
+  card.appendChild(right);
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════════════
+function updateStats() {
+  const open    = tasks.filter(t => !t.done);
+  const overdue = open.filter(t => dueStatus(t) === 'overdue');
+  const soon    = open.filter(t => dueStatus(t) === 'soon');
+  const done    = tasks.filter(t => t.done);
+
+  document.getElementById('s-overdue').textContent = overdue.length;
+  document.getElementById('s-soon').textContent    = soon.length;
+  document.getElementById('s-open').textContent    = open.length;
+  document.getElementById('s-done').textContent    = done.length;
+
+  const alert = document.getElementById('overdue-alert');
+  if (overdue.length) {
+    alert.classList.remove('hidden');
+    document.getElementById('overdue-msg').textContent =
+      `${overdue.length} task${overdue.length>1?'s':''} past due — needs attention`;
+  } else {
+    alert.classList.add('hidden');
+  }
+
+  Object.keys(TEAMS).filter(k => k !== 'ed').forEach(tid => {
+    const t = tasks.filter(t => t.team === tid);
+    const o = t.filter(t => !t.done).length;
+    const el = document.getElementById('cnt-' + tid);
+    if (el) el.textContent = o;
+  });
+}
+</script>
+</body>
+</html>
