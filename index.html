@@ -127,6 +127,7 @@ body {
 .role-btn:hover { border-color: var(--ink); }
 .role-btn.selected { border-color: var(--ink); background: var(--ink); color: var(--bg); }
 .role-btn-ed { border-style: solid; border-color: var(--ink) !important; background: var(--s2) !important; }
+.role-btn-board { border-style: dashed; border-color: var(--muted) !important; background: var(--bg) !important; color: var(--muted); }
 
 .login-btn {
   width: 100%;
@@ -370,8 +371,8 @@ body {
 .tcard:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07); border-color: #ccc8c0; }
 .tcard.overdue  { background: var(--red-bg);   border-color: var(--red-border); }
 .tcard.due-soon { background: var(--amber-bg); border-color: var(--amber-border); }
-.tcard.is-done  { opacity: 0.45; }
-.tcard.is-done .t-text { text-decoration: line-through; color: var(--muted); }
+.tcard.is-done  { opacity: 1; }
+.tcard.is-done .t-text { color: var(--ink); }
 
 /* Checkbox */
 .tcb {
@@ -470,6 +471,23 @@ body {
 .tcard:hover .del-btn.can-del { opacity: 1; }
 .del-btn.can-del:hover { color: var(--red); }
 
+/* Accomplishments sub-section */
+.acc-header {
+  display: flex; align-items: center; gap: 8px;
+  margin: 18px 0 8px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+.acc-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--green);
+  display: flex; align-items: center; gap: 5px;
+}
+.acc-label::before { content: '✦'; font-size: 9px; }
+.acc-count {
+  font-size: 10px; font-weight: 600; color: var(--muted);
+}
+
 /* Empty */
 .empty { text-align: center; padding: 36px; font-family: 'Lora', serif;
   font-style: italic; color: var(--muted); font-size: 14px; }
@@ -519,10 +537,13 @@ body {
         <span class="role-icon">🤝</span>Outreach Lead
       </button>
       <button class="role-btn" data-team="social">
-        <span class="role-icon">📢</span>Social Media Lead
+        <span class="role-icon">📢</span>Social Media Manager
       </button>
       <button class="role-btn role-btn-ed" data-team="ed" style="grid-column:1/-1">
         <span class="role-icon">🏛️</span>Executive Director <span style="font-size:10px;opacity:0.6;font-weight:400">· full access</span>
+      </button>
+      <button class="role-btn role-btn-board" data-team="board" style="grid-column:1/-1">
+        <span class="role-icon">👁️</span>Board Member <span style="font-size:10px;opacity:0.6;font-weight:400">· view only</span>
       </button>
     </div>
 
@@ -589,6 +610,10 @@ body {
       <span class="dot" style="background:var(--social-mid)"></span>Social Media
       <span class="count" id="cnt-social">0</span>
     </button>
+    <button class="tab" data-filter="ed">
+      <span class="dot" style="background:#18160f"></span>Exec. Director
+      <span class="count" id="cnt-ed">0</span>
+    </button>
   </div>
 
   <div class="content">
@@ -641,10 +666,10 @@ const TEAMS = {
   out:    { label: 'Outreach',          icon: '🤝', color: '#1e3a8a', bg: '#dbeafe', mid: '#2563eb' },
   social: { label: 'Social Media',      icon: '📢', color: '#701a75', bg: '#fae8ff', mid: '#a21caf' },
   ed:     { label: 'Executive Director',icon: '🏛️', color: '#18160f', bg: '#f0ece4', mid: '#18160f' },
+  board:  { label: 'Board Member',      icon: '👁️', color: '#7a7568', bg: '#f0ece4', mid: '#7a7568' },
 };
-
 const AVATAR_COLORS = {
-  eng: '#dcfce7', fund: '#fef3c7', out: '#dbeafe', social: '#fae8ff', ed: '#e8e3da'
+  eng: '#dcfce7', fund: '#fef3c7', out: '#dbeafe', social: '#fae8ff', ed: '#e8e3da', board: '#f0ece4'
 };
 
 const STORAGE_KEY = 'np_shared_tasks_v3';
@@ -686,6 +711,12 @@ const SEED = [
   { id:'s4', team:'social', text:'Schedule posts via Buffer / Later',             owner:'Content Lead',    cadence:'weekly',    due: offset(2),  done:false, resultUrl:'' },
   { id:'s5', team:'social', text:'Respond to comments & DMs within 24h',          owner:'Community',       cadence:'daily',     due: offset(0),  done:false, resultUrl:'' },
   { id:'s6', team:'social', text:'Pull monthly analytics & share recap with team',owner:'Lead',            cadence:'monthly',   due: offset(12), done:true,  resultUrl:'https://docs.google.com/spreadsheets/example' },
+  // ED
+  { id:'d1', team:'ed', text:'Monthly all-hands meeting with leads',              owner:'ED',              cadence:'monthly',   due: offset(3),  done:false, resultUrl:'' },
+  { id:'d2', team:'ed', text:'Review & approve budget allocations',               owner:'ED',              cadence:'monthly',   due: offset(5),  done:false, resultUrl:'' },
+  { id:'d3', team:'ed', text:'Send board update newsletter',                      owner:'ED',              cadence:'monthly',   due: offset(-2), done:false, resultUrl:'' },
+  { id:'d4', team:'ed', text:'Check in with each team lead (1-on-1)',             owner:'ED',              cadence:'bi-weekly', due: offset(1),  done:false, resultUrl:'' },
+  { id:'d5', team:'ed', text:'Review partnership & fundraising pipeline',         owner:'ED',              cadence:'monthly',   due: offset(8),  done:true,  resultUrl:'https://docs.google.com/example' },
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -777,27 +808,38 @@ async function initApp() {
     `${currentUser.name} · ${TEAMS[currentUser.team].icon} ${TEAMS[currentUser.team].label}`;
 
   // Add zone
-  const addZone = document.getElementById('add-zone');
-  addZone.classList.add('visible');
-
   const isED = currentUser.team === 'ed';
+  const isBoard = currentUser.team === 'board';
 
-  if (isED) {
-    // Show team selector in add zone for ED
-    document.getElementById('add-zone-team-label').innerHTML =
-      `<select class="a-select" id="a-team-select" style="width:160px">
-        <option value="eng">⚙️ Engineering</option>
-        <option value="fund">💛 Fundraising</option>
-        <option value="out">🤝 Outreach</option>
-        <option value="social">📢 Social Media</option>
-      </select>`;
+  // Add zone — hidden for board
+  const addZone = document.getElementById('add-zone');
+  if (isBoard) {
+    addZone.classList.remove('visible');
   } else {
-    document.getElementById('add-zone-team-label').textContent =
-      `${TEAMS[currentUser.team].icon} ${TEAMS[currentUser.team].label}`;
+    addZone.classList.add('visible');
+    if (isED) {
+      document.getElementById('add-zone-team-label').innerHTML =
+        `<select class="a-select" id="a-team-select" style="width:170px">
+          <option value="ed">🏛️ Exec. Director</option>
+          <option value="eng">⚙️ Engineering</option>
+          <option value="fund">💛 Fundraising</option>
+          <option value="out">🤝 Outreach</option>
+          <option value="social">📢 Social Media</option>
+        </select>`;
+    } else {
+      document.getElementById('add-zone-team-label').textContent =
+        `${TEAMS[currentUser.team].icon} ${TEAMS[currentUser.team].label}`;
+    }
   }
 
-  // Readonly notice (only for non-ED non-own-team viewing)
-  document.getElementById('readonly-notice').style.display = isED ? 'none' : 'inline-flex';
+  // Readonly notice
+  const notice = document.getElementById('readonly-notice');
+  if (isBoard) {
+    notice.style.display = 'inline-flex';
+    notice.textContent = '👁️ Board view — read only. All task data updates live.';
+  } else {
+    notice.style.display = 'none';
+  }
 
   // Load & render
   await loadTasks();
@@ -841,6 +883,7 @@ document.getElementById('a-text').addEventListener('keydown', e => {
 async function addTask() {
   const text = document.getElementById('a-text').value.trim();
   if (!text) { document.getElementById('a-text').focus(); return; }
+  if (currentUser.team === 'board') return;
 
   const isED = currentUser.team === 'ed';
   const teamSelect = document.getElementById('a-team-select');
@@ -882,8 +925,8 @@ function renderAll() {
 
   const groups = {};
   if (currentFilter === 'all' || currentFilter === 'overdue') {
-    Object.keys(TEAMS).forEach(k => groups[k] = []);
-    visible.forEach(t => groups[t.team].push(t));
+    Object.keys(TEAMS).filter(k => k !== 'board').forEach(k => groups[k] = []);
+    visible.forEach(t => { if (groups[t.team] !== undefined) groups[t.team].push(t); });
   } else {
     groups[currentFilter] = visible;
   }
@@ -922,32 +965,56 @@ function renderSection(teamId, list) {
 
   const prog = document.createElement('div');
   prog.className = 'section-progress';
-  const done = list.filter(t=>t.done).length;
-  prog.innerHTML = `<b>${done}</b> / ${list.length} done`;
+  const doneCount = list.filter(t=>t.done).length;
+  prog.innerHTML = `<b>${doneCount}</b> / ${list.length} done`;
 
   head.appendChild(pill);
   head.appendChild(prog);
   wrap.appendChild(head);
 
-  // Sort: overdue → due-soon → ok → done
-  const order = { overdue: 0, soon: 1, ok: 2, none: 3, done: 4 };
-  const sorted = [...list].sort((a,b) => {
-    const os = order[dueStatus(a)] - order[dueStatus(b)];
+  // Split into open vs done
+  const openTasks = list.filter(t => !t.done);
+  const doneTasks = list.filter(t => t.done);
+
+  // Sort open: overdue → soon → ok → none
+  const order = { overdue: 0, soon: 1, ok: 2, none: 3 };
+  openTasks.sort((a,b) => {
+    const os = (order[dueStatus(a)] ?? 3) - (order[dueStatus(b)] ?? 3);
     if (os !== 0) return os;
     if (!a.due && !b.due) return 0;
     if (!a.due) return 1; if (!b.due) return -1;
     return new Date(a.due) - new Date(b.due);
   });
 
-  const tasksWrap = document.createElement('div');
-  tasksWrap.className = 'tasks-wrap';
-  sorted.forEach(t => tasksWrap.appendChild(renderTask(t)));
-  wrap.appendChild(tasksWrap);
+  // Render open tasks
+  if (openTasks.length) {
+    const tasksWrap = document.createElement('div');
+    tasksWrap.className = 'tasks-wrap';
+    openTasks.forEach(t => tasksWrap.appendChild(renderTask(t)));
+    wrap.appendChild(tasksWrap);
+  }
+
+  // Render accomplishments sub-section
+  if (doneTasks.length) {
+    const accHead = document.createElement('div');
+    accHead.className = 'acc-header';
+    accHead.innerHTML = `
+      <div class="acc-label">Accomplishments</div>
+      <div class="acc-count">${doneTasks.length} completed</div>
+    `;
+    wrap.appendChild(accHead);
+
+    const accWrap = document.createElement('div');
+    accWrap.className = 'tasks-wrap';
+    doneTasks.forEach(t => accWrap.appendChild(renderTask(t)));
+    wrap.appendChild(accWrap);
+  }
+
   return wrap;
 }
 
 function renderTask(task) {
-  const canEdit = currentUser && (currentUser.team === 'ed' || currentUser.team === task.team);
+  const canEdit = currentUser && currentUser.team !== 'board' && (currentUser.team === 'ed' || currentUser.team === task.team);
   const status  = dueStatus(task);
 
   const card = document.createElement('div');
@@ -1110,12 +1177,16 @@ function updateStats() {
     alert.classList.add('hidden');
   }
 
-  Object.keys(TEAMS).filter(k => k !== 'ed').forEach(tid => {
+  Object.keys(TEAMS).filter(k => k !== 'ed' && k !== 'board').forEach(tid => {
     const t = tasks.filter(t => t.team === tid);
     const o = t.filter(t => !t.done).length;
     const el = document.getElementById('cnt-' + tid);
     if (el) el.textContent = o;
   });
+  // ED tab count
+  const edOpen = tasks.filter(t => t.team === 'ed' && !t.done).length;
+  const edEl = document.getElementById('cnt-ed');
+  if (edEl) edEl.textContent = edOpen;
 }
 </script>
 </body>
